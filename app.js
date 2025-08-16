@@ -1,5 +1,5 @@
-// Mobile-friendly MoneyFlow (React + Tailwind, без import/export)
-const { useMemo, useState, useEffect, useRef } = React;
+// MoneyFlow — мобильный аккуратный UI (React + Tailwind, без модулей)
+const { useMemo, useState, useRef, useEffect } = React;
 
 function clampDay(d) { return Math.min(31, Math.max(1, Number(d) || 1)); }
 function uid() { return Math.random().toString(36).slice(2, 9); }
@@ -96,80 +96,70 @@ function plan({ startBalance, incomes, bills, loans, goals, strategy = 'avalanch
   return { tl, loanBalances, totals };
 }
 
-// ------- UI helpers -------
-function Card({ children, title, right, collapsible = false, defaultOpen = true }) {
+// ---------- UI элементы ----------
+function Section({ children, title, right }) {
   return (
     <div className="bg-white/90 backdrop-blur border shadow-soft rounded-2xl p-4">
-      {collapsible ? (
-        <details open={defaultOpen} className="[&_summary::-webkit-details-marker]:hidden">
-          <summary className="flex items-center justify-between mb-3 cursor-pointer select-none">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            <div className="flex items-center gap-3">
-              {right}
-              <span className="text-slate-500 text-sm">развернуть</span>
-            </div>
-          </summary>
-          {children}
-        </details>
-      ) : (
-        <>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">{title}</h2>
-            {right}
-          </div>
-          {children}
-        </>
-      )}
+      <div className="flex items-center justify-between mb-3">
+        <h2 className="text-lg font-semibold">{title}</h2>
+        {right}
+      </div>
+      {children}
     </div>
   );
 }
 
-function Num({ value, onChange, inputMode = "numeric" }) {
+function TinyField({ label, children }) {
   return (
-    <input
-      type="number"
-      inputMode={inputMode}
-      className="w-full px-4 py-3 text-base border rounded-xl"
-      value={value}
-      onChange={e => onChange(Number(e.target.value))}
-    />
-  );
-}
-function Day({ value, onChange }) {
-  return (
-    <input
-      type="number"
-      inputMode="numeric"
-      min={1} max={31}
-      className="w-24 px-4 py-3 text-base border rounded-xl"
-      value={value}
-      onChange={e => onChange(clampDay(e.target.value))}
-    />
+    <label className="block">
+      <div className="text-xs text-slate-500 mb-1">{label}</div>
+      {children}
+    </label>
   );
 }
 
+function Text({ value, onChange }) {
+  return <input className="w-full px-3 py-2 text-[15px] border rounded-xl" value={value} onChange={e => onChange(e.target.value)} />;
+}
+function Num({ value, onChange }) {
+  return <input type="number" inputMode="numeric" className="w-full px-3 py-2 text-[15px] border rounded-xl" value={value} onChange={e => onChange(Number(e.target.value))} />;
+}
+function Day({ value, onChange }) {
+  return <input type="number" inputMode="numeric" min={1} max={31} className="w-full px-3 py-2 text-[15px] border rounded-xl" value={value} onChange={e => onChange(clampDay(e.target.value))} />;
+}
+
+function RowCard({ title, onRemove, children }) {
+  return (
+    <div className="border rounded-2xl p-3">
+      <div className="flex items-center justify-between mb-2">
+        <div className="font-medium truncate">{title}</div>
+        <button className="text-red-600 text-sm px-2 py-1 rounded-xl hover:bg-red-50" onClick={onRemove}>удалить</button>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ---- списки ----
 function Incomes({ items, setItems }) {
   const add = () => setItems([...items, { id: uid(), name: 'Доход', amount: 0, day: 1 }]);
   const rm = id => setItems(items.filter(i => i.id !== id));
   const up = (id, patch) => setItems(items.map(i => i.id === id ? { ...i, ...patch } : i));
+
   return (
-    <Card title="Доходы" collapsible defaultOpen={false} right={<button onClick={add} className="px-3 py-2 border rounded-xl">+ добавить</button>}>
+    <Section title="Доходы" right={<button onClick={add} className="px-3 py-2 border rounded-xl">+ добавить</button>}>
       <div className="space-y-3">
         {items.map(i => (
-          <div key={i.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-            <input className="sm:col-span-5 px-4 py-3 text-base border rounded-xl" value={i.name} onChange={e => up(i.id, { name: e.target.value })} />
-            <div className="sm:col-span-3"><Num value={i.amount} onChange={v => up(i.id, { amount: v })} /></div>
-            <div className="sm:col-span-3 flex items-center gap-2">
-              <span className="text-sm text-slate-500">День</span>
-              <Day value={i.day} onChange={v => up(i.id, { day: v })} />
+          <RowCard key={i.id} title={i.name || 'Доход'} onRemove={() => rm(i.id)}>
+            <div className="grid grid-cols-2 gap-3">
+              <TinyField label="Название"><Text value={i.name} onChange={v => up(i.id, { name: v })} /></TinyField>
+              <TinyField label="Сумма"><Num value={i.amount} onChange={v => up(i.id, { amount: v })} /></TinyField>
+              <TinyField label="День (1–31)"><Day value={i.day} onChange={v => up(i.id, { day: v })} /></TinyField>
             </div>
-            <div className="sm:col-span-1 text-right">
-              <button className="text-red-600" onClick={() => rm(i.id)}>x</button>
-            </div>
-          </div>
+          </RowCard>
         ))}
       </div>
-    </Card>
+    </Section>
   );
 }
 
@@ -177,29 +167,26 @@ function Bills({ items, setItems }) {
   const add = () => setItems([...items, { id: uid(), name: 'Платёж', amount: 0, day: 10, priority: 5 }]);
   const rm = id => setItems(items.filter(i => i.id !== id));
   const up = (id, patch) => setItems(items.map(i => i.id === id ? { ...i, ...patch } : i));
+
   return (
-    <Card title="Обязательные платежи" collapsible defaultOpen={true} right={<button onClick={add} className="px-3 py-2 border rounded-xl">+ добавить</button>}>
+    <Section title="Обязательные платежи" right={<button onClick={add} className="px-3 py-2 border rounded-xl">+ добавить</button>}>
       <div className="space-y-3">
         {items.map(b => (
-          <div key={b.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-            <input className="sm:col-span-4 px-4 py-3 text-base border rounded-xl" value={b.name} onChange={e => up(b.id, { name: e.target.value })} />
-            <div className="sm:col-span-3"><Num value={b.amount} onChange={v => up(b.id, { amount: v })} /></div>
-            <div className="sm:col-span-3 flex items-center gap-2">
-              <span className="text-sm text-slate-500">День</span>
-              <Day value={b.day} onChange={v => up(b.id, { day: v })} />
+          <RowCard key={b.id} title={b.name || 'Платёж'} onRemove={() => rm(b.id)}>
+            <div className="grid grid-cols-2 gap-3">
+              <TinyField label="Название"><Text value={b.name} onChange={v => up(b.id, { name: v })} /></TinyField>
+              <TinyField label="Сумма"><Num value={b.amount} onChange={v => up(b.id, { amount: v })} /></TinyField>
+              <TinyField label="День (1–31)"><Day value={b.day} onChange={v => up(b.id, { day: v })} /></TinyField>
+              <TinyField label="Приоритет (1–10)">
+                <input type="number" min="1" max="10" inputMode="numeric"
+                  className="w-full px-3 py-2 text-[15px] border rounded-xl"
+                  value={b.priority} onChange={e => up(b.id, { priority: Number(e.target.value) })} />
+              </TinyField>
             </div>
-            <div className="sm:col-span-1">
-              <input type="number" min="1" max="10" inputMode="numeric"
-                className="w-full px-4 py-3 text-base border rounded-xl"
-                value={b.priority} onChange={e => up(b.id, { priority: Number(e.target.value) })} />
-            </div>
-            <div className="sm:col-span-1 text-right">
-              <button className="text-red-600" onClick={() => rm(b.id)}>x</button>
-            </div>
-          </div>
+          </RowCard>
         ))}
       </div>
-    </Card>
+    </Section>
   );
 }
 
@@ -207,27 +194,23 @@ function Loans({ items, setItems }) {
   const add = () => setItems([...items, { id: uid(), name: 'Кредит', balance: 0, apr: 20, minPayment: 0, day: 5 }]);
   const rm = id => setItems(items.filter(i => i.id !== id));
   const up = (id, patch) => setItems(items.map(i => i.id === id ? { ...i, ...patch } : i));
+
   return (
-    <Card title="Кредиты" collapsible defaultOpen={false} right={<button onClick={add} className="px-3 py-2 border rounded-xl">+ добавить</button>}>
+    <Section title="Кредиты" right={<button onClick={add} className="px-3 py-2 border rounded-xl">+ добавить</button>}>
       <div className="space-y-3">
         {items.map(l => (
-          <div key={l.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-            <input className="sm:col-span-3 px-4 py-3 text-base border rounded-xl" value={l.name} onChange={e => up(l.id, { name: e.target.value })} />
-            <div className="sm:col-span-2"><Num value={l.balance} onChange={v => up(l.id, { balance: v })} /></div>
-            <div className="sm:col-span-2"><input type="number" inputMode="decimal" className="w-full px-4 py-3 text-base border rounded-xl" value={l.apr} onChange={e => up(l.id, { apr: Number(e.target.value) })} /></div>
-            <div className="sm:col-span-2"><Num value={l.minPayment} onChange={v => up(l.id, { minPayment: v })} /></div>
-            <div className="sm:col-span-2 flex items-center gap-2">
-              <span className="text-sm text-slate-500">День</span>
-              <Day value={l.day} onChange={v => up(l.id, { day: v })} />
+          <RowCard key={l.id} title={l.name || 'Кредит'} onRemove={() => rm(l.id)}>
+            <div className="grid grid-cols-2 gap-3">
+              <TinyField label="Название"><Text value={l.name} onChange={v => up(l.id, { name: v })} /></TinyField>
+              <TinyField label="Остаток"><Num value={l.balance} onChange={v => up(l.id, { balance: v })} /></TinyField>
+              <TinyField label="APR, %"><input type="number" inputMode="decimal" className="w-full px-3 py-2 text-[15px] border rounded-xl" value={l.apr} onChange={e => up(l.id, { apr: Number(e.target.value) })} /></TinyField>
+              <TinyField label="Мин. платёж"><Num value={l.minPayment} onChange={v => up(l.id, { minPayment: v })} /></TinyField>
+              <TinyField label="День (1–31)"><Day value={l.day} onChange={v => up(l.id, { day: v })} /></TinyField>
             </div>
-            <div className="sm:col-span-1 text-right">
-              <button className="text-red-600" onClick={() => rm(l.id)}>x</button>
-            </div>
-          </div>
+          </RowCard>
         ))}
       </div>
-      <div className="text-xs text-slate-500 mt-2">APR используется для приоритета выплат, проценты упрощены.</div>
-    </Card>
+    </Section>
   );
 }
 
@@ -255,7 +238,6 @@ function Timeline({ tl }) {
 }
 
 function StickyBar({ totals, onScrollToTimeline }) {
-  // нижняя панель только на телефонах
   return (
     <div className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur border-t">
       <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
@@ -297,22 +279,13 @@ function App() {
   };
 
   const timelineRef = useRef(null);
-  const scrollToTimeline = () => {
-    timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  const scrollToTimeline = () => timelineRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  // отступ снизу под фикс-панель на телефонах
+  // нижний отступ под фикс-панель на телефонах
   useEffect(() => {
-    const root = document.documentElement;
-    const handler = () => {
-      if (window.matchMedia('(max-width: 767px)').matches) {
-        root.style.setProperty('--mf-bottom', '64px');
-      } else {
-        root.style.removeProperty('--mf-bottom');
-      }
-    };
-    handler(); window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
+    const set = () => document.documentElement.style.setProperty('--mf-bottom', window.matchMedia('(max-width: 767px)').matches ? '64px' : '0');
+    set(); window.addEventListener('resize', set);
+    return () => window.removeEventListener('resize', set);
   }, []);
 
   return (
@@ -345,50 +318,42 @@ function App() {
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-        {/* Левая колонка */}
         <div className="md:col-span-3 space-y-4">
-          <Card title="Начальный баланс на 1 число" collapsible defaultOpen={true}>
+          <Section title="Начальный баланс на 1 число">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
               <Num value={startBalance} onChange={setStartBalance} />
               <div className="flex items-center gap-3 text-sm">
                 <span className="text-slate-500">Стратегия кредитов:</span>
-                <select className="px-4 py-3 text-base border rounded-xl" value={strategy} onChange={e => setStrategy(e.target.value)}>
+                <select className="px-3 py-2 text-[15px] border rounded-xl" value={strategy} onChange={e => setStrategy(e.target.value)}>
                   <option value="avalanche">Avalanche (высокая ставка)</option>
                   <option value="snowball">Snowball (меньший баланс)</option>
                 </select>
               </div>
             </div>
-          </Card>
+          </Section>
 
           <Incomes items={incomes} setItems={setIncomes} />
           <Bills items={bills} setItems={setBills} />
           <Loans items={loans} setItems={setLoans} />
 
-          <Card title="Цели накоплений" collapsible defaultOpen={false} right={
-            <button className="px-3 py-2 border rounded-xl" onClick={() => setGoals([...goals, { id: uid(), name: 'Цель', target: 0, monthly: 0 }])}>+ добавить</button>
-          }>
+          <Section title="Цели накоплений" right={<button className="px-3 py-2 border rounded-xl" onClick={() => setGoals([...goals, { id: uid(), name: 'Цель', target: 0, monthly: 0 }])}>+ добавить</button>}>
             <div className="space-y-3">
               {goals.map(g => (
-                <div key={g.id} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
-                  <input className="sm:col-span-5 px-4 py-3 text-base border rounded-xl" value={g.name}
-                    onChange={e => setGoals(goals.map(x => x.id === g.id ? { ...x, name: e.target.value } : x))} />
-                  <div className="sm:col-span-3"><Num value={g.target}
-                    onChange={v => setGoals(goals.map(x => x.id === g.id ? { ...x, target: v } : x))} /></div>
-                  <div className="sm:col-span-3"><Num value={g.monthly}
-                    onChange={v => setGoals(goals.map(x => x.id === g.id ? { ...x, monthly: v } : x))} /></div>
-                  <div className="sm:col-span-1 text-right">
-                    <button className="text-red-600" onClick={() => setGoals(goals.filter(x => x.id !== g.id))}>x</button>
+                <RowCard key={g.id} title={g.name || 'Цель'} onRemove={() => setGoals(goals.filter(x => x.id !== g.id))}>
+                  <div className="grid grid-cols-2 gap-3">
+                    <TinyField label="Название"><Text value={g.name} onChange={v => setGoals(goals.map(x => x.id === g.id ? { ...x, name: v } : x))} /></TinyField>
+                    <TinyField label="Целевая сумма"><Num value={g.target} onChange={v => setGoals(goals.map(x => x.id === g.id ? { ...x, target: v } : x))} /></TinyField>
+                    <TinyField label="Ежемесячно"><Num value={g.monthly} onChange={v => setGoals(goals.map(x => x.id === g.id ? { ...x, monthly: v } : x))} /></TinyField>
                   </div>
-                </div>
+                </RowCard>
               ))}
             </div>
-          </Card>
+          </Section>
         </div>
 
-        {/* Правая колонка */}
         <div className="md:col-span-2 space-y-4">
-          <Card title="Итоги месяца" collapsible defaultOpen={true}>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+          <Section title="Итоги месяца">
+            <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="p-3 rounded-xl bg-green-50 border">
                 <div className="text-slate-500">На кредиты</div>
                 <div className="text-xl font-semibold">{fmt(totals.paidLoans)}</div>
@@ -419,19 +384,17 @@ function App() {
                 );
               })}
             </div>
-          </Card>
+          </Section>
 
           <div ref={timelineRef}>
-            <Card title="Таймлайн операций" collapsible defaultOpen={false}>
+            <Section title="Таймлайн операций">
               <Timeline tl={tl} />
-            </Card>
+            </Section>
           </div>
         </div>
       </div>
 
-      {/* нижняя панель на телефонах */}
       <StickyBar totals={totals} onScrollToTimeline={scrollToTimeline} />
-
       <footer className="text-center text-xs text-slate-400 mt-8 md:mt-10 pb-24 md:pb-0">
         Это PWA: установи через «Добавить на экран». После первого запуска работает офлайн.
       </footer>
