@@ -1,206 +1,50 @@
 <!doctype html>
 <html lang="ru">
-
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0f172a" />
-  <title>MoneyFlow — PWA</title>
-  <link rel="manifest" href="manifest.webmanifest" />
-  <link rel="icon" sizes="192x192" href="icons/icon-192.png" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <meta name="description" content="MoneyFlow — простое приложение для планирования личных финансов" />
-  <style>
-    /* фикс светлой темы и форм */
-    :root {
-      color-scheme: light;
-    }
-
-    input,
-    select,
-    textarea {
-      background: #fff !important;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-    }
-
-    /* убрать платформенные стили, которые делают «ползунки» */
-    input[type="number"],
-    select,
-    textarea {
-      -webkit-appearance: none;
-      appearance: none;
-    }
-
-    /* на всякий случай для тёмных инверторов */
-    @media (prefers-color-scheme: dark) {
-      body {
-        background: #f8fafc;
-        color: #0f172a;
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0f172a" />
+    <title>MoneyFlow — PWA</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" sizes="192x192" href="icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="icons/icon-192.png" />
+    <meta name="description" content="MoneyFlow — простое приложение для планирования личных финансов" />
+    <style>
+      *,*::before,*::after{ box-sizing: border-box; }
+      html, body { height: 100%; }
+      body { margin: 0; }
+      :root { color-scheme: light; }
+      #mf { font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; background: #f8fafc; color: #0f172a; min-height: 100vh; }
+      #mf .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+      #mf .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+      #mf .btn { padding: 8px 12px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; cursor: pointer; }
+      #mf .btn:hover { background: #f8fafc; }
+      #mf .grid { display: grid; gap: 16px; }
+      #mf .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      #mf .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+      #mf input, #mf select, #mf textarea { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 12px; width: 100%; background: #fff !important; color: #0f172a; -webkit-appearance: none; appearance: none; }
+      #mf .pill { padding: 2px 8px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 12px; }
+      #mf .row { display: grid; grid-template-columns: 5fr 2fr 2fr 1fr; gap: 8px; align-items: center; }
+      #mf .title { font-size: 20px; font-weight: 700; }
+      #mf .muted { color: #64748b; font-size: 12px; }
+      #mf .timeline-in { background: #ecfdf5; }
+      #mf .timeline-out { background: #fef2f2; }
+      #mf .timeline-warn { background: #fffbeb; }
+      #mf .timeline { border-radius: 12px; padding: 8px 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
+      #mf footer { text-align: center; color: #94a3b8; font-size: 12px; padding: 24px 0; }
+      @media (max-width: 900px) { #mf .grid-5 { grid-template-columns: 1fr; } #mf .grid-2 { grid-template-columns: 1fr; } #mf .row { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div id="mf"><div id="root"></div></div>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel" src="app.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(console.error); });
       }
-
-      input,
-      select,
-      textarea {
-        background: #fff;
-        color: #0f172a;
-      }
-    }
-  </style>
-
-  <style>
-    @font-face {
-      font-family: 'Inter';
-      src: local('Inter');
-      font-display: swap;
-    }
-
-    :root {
-      color-scheme: light dark;
-    }
-
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
-      background: #f8fafc;
-      color: #0f172a;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-
-    .card {
-      background: white;
-      border: 1px solid #e2e8f0;
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-    }
-
-    .btn {
-      padding: 8px 12px;
-      border-radius: 12px;
-      border: 1px solid #cbd5e1;
-      background: white;
-      cursor: pointer;
-    }
-
-    .btn:hover {
-      background: #f8fafc;
-    }
-
-    .grid {
-      display: grid;
-      gap: 16px;
-    }
-
-    .grid-2 {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .grid-5 {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-
-    input,
-    select {
-      padding: 8px 12px;
-      border: 1px solid #cbd5e1;
-      border-radius: 12px;
-      width: 100%;
-    }
-
-    .pill {
-      padding: 2px 8px;
-      background: #f1f5f9;
-      border: 1px solid #e2e8f0;
-      border-radius: 999px;
-      font-size: 12px;
-    }
-
-    .row {
-      display: grid;
-      grid-template-columns: 5fr 2fr 2fr 2fr 1fr;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .title {
-      font-size: 20px;
-      font-weight: 700;
-    }
-
-    .muted {
-      color: #64748b;
-      font-size: 12px;
-    }
-
-    .timeline-in {
-      background: #ecfdf5;
-    }
-
-    .timeline-out {
-      background: #fef2f2;
-    }
-
-    .timeline-warn {
-      background: #fffbeb;
-    }
-
-    .timeline {
-      border-radius: 12px;
-      padding: 8px 12px;
-      border: 1px solid #e2e8f0;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    footer {
-      text-align: center;
-      color: #94a3b8;
-      font-size: 12px;
-      padding: 24px 0;
-    }
-
-    @media (max-width: 900px) {
-      .grid-5 {
-        grid-template-columns: 1fr;
-      }
-
-      .grid-2 {
-        grid-template-columns: 1fr;
-      }
-
-      .row {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-
-<body>
-  <div id="root"></div>
-
-  <!-- React via CDN + Babel for JSX (cached by SW for offline) -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- App code -->
-  <script type="text/babel" src="app.js"></script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').catch(console.error);
-      });
-    }
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
