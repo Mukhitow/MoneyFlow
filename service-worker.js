@@ -1,5 +1,5 @@
-/* MoneyFlow PWA service worker (fixed) */
-const CACHE = 'moneyflow-v3';
+/* MoneyFlow PWA service worker (tailwind) */
+const CACHE = 'moneyflow-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const ASSETS = [
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',
+  'https://cdn.tailwindcss.com',
   'https://unpkg.com/react@18/umd/react.production.min.js',
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
   'https://unpkg.com/@babel/standalone/babel.min.js'

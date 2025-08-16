@@ -4,39 +4,32 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0f172a" />
-    <title>MoneyFlow — PWA</title>
+    <title>MoneyFlow — PWA (Tailwind)</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" sizes="192x192" href="icons/icon-192.png" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
     <meta name="description" content="MoneyFlow — простое приложение для планирования личных финансов" />
+    <!-- Tailwind Play CDN (cached by SW) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: { brand: { 50: '#eef2ff', 600: '#4f46e5', 700: '#4338ca' } },
+            boxShadow: { soft: '0 1px 2px rgba(0,0,0,0.04)' }
+          }
+        }
+      }
+    </script>
     <style>
-      *,*::before,*::after{ box-sizing: border-box; }
-      html, body { height: 100%; }
-      body { margin: 0; }
       :root { color-scheme: light; }
-      #mf { font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif; background: #f8fafc; color: #0f172a; min-height: 100vh; }
-      #mf .container { max-width: 1200px; margin: 0 auto; padding: 16px; }
-      #mf .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
-      #mf .btn { padding: 8px 12px; border-radius: 12px; border: 1px solid #cbd5e1; background: white; cursor: pointer; }
-      #mf .btn:hover { background: #f8fafc; }
-      #mf .grid { display: grid; gap: 16px; }
-      #mf .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      #mf .grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
-      #mf input, #mf select, #mf textarea { padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 12px; width: 100%; background: #fff !important; color: #0f172a; -webkit-appearance: none; appearance: none; }
-      #mf .pill { padding: 2px 8px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 999px; font-size: 12px; }
-      #mf .row { display: grid; grid-template-columns: 5fr 2fr 2fr 1fr; gap: 8px; align-items: center; }
-      #mf .title { font-size: 20px; font-weight: 700; }
-      #mf .muted { color: #64748b; font-size: 12px; }
-      #mf .timeline-in { background: #ecfdf5; }
-      #mf .timeline-out { background: #fef2f2; }
-      #mf .timeline-warn { background: #fffbeb; }
-      #mf .timeline { border-radius: 12px; padding: 8px 12px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; }
-      #mf footer { text-align: center; color: #94a3b8; font-size: 12px; padding: 24px 0; }
-      @media (max-width: 900px) { #mf .grid-5 { grid-template-columns: 1fr; } #mf .grid-2 { grid-template-columns: 1fr; } #mf .row { grid-template-columns: 1fr; } }
+      /* prevent dark-reader inversion */
+      input, select, textarea { background:#fff !important; color:#0f172a; }
     </style>
   </head>
-  <body>
-    <div id="mf"><div id="root"></div></div>
+  <body class="min-h-screen bg-slate-50 text-slate-800">
+    <div id="root"></div>
+
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
