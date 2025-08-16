@@ -154,20 +154,39 @@ function Bills({ items, setItems }) {
   const add = () => setItems([...items, { id: uid(), name: 'Платёж', amount: 0, day: 10, priority: 5 }]);
   const rm = id => setItems(items.filter(i => i.id !== id));
   const up = (id, patch) => setItems(items.map(i => i.id === id ? { ...i, ...patch } : i));
+
   return (
     <Card title="Обязательные платежи" right={<button onClick={add} className="px-3 py-2 border rounded-xl">+ добавить</button>}>
       <div className="space-y-2">
         {items.map(b => (
           <div key={b.id} className="grid grid-cols-12 gap-2 items-center">
-            <input className="col-span-4 px-3 py-2 border rounded-xl" value={b.name} onChange={e => up(b.id, { name: e.target.value })} />
-            <div className="col-span-3"><Num value={b.amount} onChange={v => up(b.id, { amount: v })} /></div>
+            {/* Название */}
+            <input
+              className="col-span-4 px-3 py-2 border rounded-xl"
+              value={b.name}
+              onChange={e => up(b.id, { name: e.target.value })}
+            />
+            {/* Сумма */}
+            <div className="col-span-3">
+              <Num value={b.amount} onChange={v => up(b.id, { amount: v })} />
+            </div>
+            {/* День оплаты */}
             <div className="col-span-3 flex items-center gap-2">
               <span className="text-sm text-slate-500">День</span>
               <Day value={b.day} onChange={v => up(b.id, { day: v })} />
             </div>
+            {/* Приоритет */}
             <div className="col-span-1">
-              <input type="number" className="w-full px-3 py-2 border rounded-xl" value={b.priority} min="1" max="10" onChange={e => up(b.id, { priority: Number(e.target.value) })} />
+              <input
+                type="number"
+                min="1"
+                max="10"
+                className="w-full px-3 py-2 border rounded-xl"
+                value={b.priority}
+                onChange={e => up(b.id, { priority: Number(e.target.value) })}
+              />
             </div>
+            {/* Удалить */}
             <div className="col-span-1 text-right">
               <button className="text-red-600" onClick={() => rm(b.id)}>x</button>
             </div>
