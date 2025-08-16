@@ -1,43 +1,64 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0f172a" />
-    <title>MoneyFlow — PWA (Tailwind)</title>
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="icon" sizes="192x192" href="icons/icon-192.png" />
-    <link rel="apple-touch-icon" href="icons/icon-192.png" />
-    <meta name="description" content="MoneyFlow — простое приложение для планирования личных финансов" />
-    <!-- Tailwind Play CDN (cached by SW) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: { brand: { 50: '#eef2ff', 600: '#4f46e5', 700: '#4338ca' } },
-            boxShadow: { soft: '0 1px 2px rgba(0,0,0,0.04)' }
-          }
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>MoneyFlow — PWA</title>
+
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <meta name="description" content="MoneyFlow — простое приложение для планирования личных финансов" />
+
+  <!-- Tailwind (через CDN, кешируется service worker'ом) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { brand: { 50: '#eef2ff', 600: '#4f46e5', 700: '#4338ca' } },
+          boxShadow: { soft: '0 1px 2px rgba(0,0,0,0.04)' }
         }
       }
-    </script>
-    <style>
-      :root { color-scheme: light; }
-      /* prevent dark-reader inversion */
-      input, select, textarea { background:#fff !important; color:#0f172a; }
-    </style>
-  </head>
-  <body class="min-h-screen bg-slate-50 text-slate-800">
-    <div id="root"></div>
+    }
+  </script>
 
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script type="text/babel" src="app.js"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('./service-worker.js').catch(console.error); });
-      }
-    </script>
-  </body>
+  <style>
+    :root {
+      color-scheme: light;
+    }
+
+    /* фикс на «светлую» тему */
+    /* не даём расширениям затемнять поля */
+    input,
+    select,
+    textarea {
+      background: #fff !important;
+      color: #0f172a;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-slate-50 text-slate-800">
+  <div id="root"></div>
+
+  <!-- React + Babel (офлайн после 1-го запуска) -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Приложение -->
+  <script type="text/babel" src="app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js').catch(console.error);
+      });
+    }
+  </script>
+</body>
+
 </html>

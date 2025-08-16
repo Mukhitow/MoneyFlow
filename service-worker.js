@@ -1,4 +1,4 @@
-/* MoneyFlow PWA service worker (tailwind) */
+/* MoneyFlow PWA service worker (tailwind look) */
 const CACHE = 'moneyflow-v4';
 const ASSETS = [
   './',
@@ -12,13 +12,36 @@ const ASSETS = [
   'https://unpkg.com/react-dom@18/umd/react-dom.production.min.js',
   'https://unpkg.com/@babel/standalone/babel.min.js'
 ];
-self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))); self.skipWaiting(); });
-self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))); self.clients.claim(); });
+
+self.addEventListener('install', (e) => {
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (e) => {
+  e.waitUntil(
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+  );
+  self.clients.claim();
+});
+
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+
+  // Для app.js — network-first, чтобы ловить обновления
   if (url.pathname.endsWith('/app.js')) {
-    e.respondWith(fetch(e.request).then(resp => { const copy=resp.clone(); caches.open(CACHE).then(c=>c.put(e.request, copy)); return resp; }).catch(()=>caches.match(e.request)));
+    e.respondWith(
+      fetch(e.request).then(resp => {
+        const copy = resp.clone();
+        caches.open(CACHE).then(c => c.put(e.request, copy));
+        return resp;
+      }).catch(() => caches.match(e.request))
+    );
     return;
   }
-  e.respondWith(caches.match(e.request).then(cached => cached || fetch(e.request).catch(()=>caches.match('./index.html'))));
+
+  // Остальное — cache-first с подстраховкой index.html
+  e.respondWith(
+    caches.match(e.request).then(cached => cached || fetch(e.request).catch(() => caches.match('./index.html')))
+  );
 });
