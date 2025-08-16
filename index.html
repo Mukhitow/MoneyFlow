@@ -50,7 +50,9 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <!-- Приложение -->
-  <script type="text/babel" src="app.js"></script>
+  <script type="text/babel" data-presets="env,react" src="app.js">
+  </script>
+
 
   <script>
     if ('serviceWorker' in navigator) {
